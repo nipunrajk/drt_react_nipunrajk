@@ -1,6 +1,4 @@
 import React, { useMemo } from 'react'
-import axios from 'axios'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
   type ColumnDef,
   flexRender,
@@ -11,38 +9,14 @@ import {
 } from '@tanstack/react-table'
 import { FixedSizeList as List } from 'react-window'
 import type { Satellite } from '../types'
+import { useSatellites } from '../services'
 
 interface SatelliteTableProps {
   searchQuery: string
 }
 
-const fetchSatellites = async (searchQuery: string) => {
-  const params = {
-    attributes: [
-      'noradCatId',
-      'name',
-      'orbitCode',
-      'objectType',
-      'countryCode',
-      'launchDate',
-    ].join(','),
-  }
-  const { data } = await axios.get<{ data: Satellite[] }>('/v1/satellites', {
-    params,
-  })
-  return data.data
-}
-
 const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
-  const {
-    data: allSats = [],
-    isLoading,
-    isError,
-  } = useQuery<Satellite[], Error>({
-    queryKey: ['satellites', searchQuery],
-    queryFn: () => fetchSatellites(searchQuery),
-    placeholderData: keepPreviousData,
-  })
+  const { data: allSats = [], isLoading, isError } = useSatellites(searchQuery)
 
   const satellites = useMemo(() => {
     if (!searchQuery) return allSats
