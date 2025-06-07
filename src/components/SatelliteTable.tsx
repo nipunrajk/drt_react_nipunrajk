@@ -17,7 +17,7 @@ interface SatelliteTableProps {
 }
 
 const fetchSatellites = async (searchQuery: string) => {
-  const params: Record<string, any> = {
+  const params = {
     attributes: [
       'noradCatId',
       'name',
@@ -27,28 +27,31 @@ const fetchSatellites = async (searchQuery: string) => {
       'launchDate',
     ].join(','),
   }
-  if (searchQuery) {
-    // we’ll pass searchQuery as name OR noradCatId partial match on backend
-    params.name = searchQuery
-    params.noradCatId = searchQuery
-  }
-  const response = await axios.get<{ data: Satellite[] }>('/v1/satellites', {
+  const { data } = await axios.get<{ data: Satellite[] }>('/v1/satellites', {
     params,
   })
-  return response.data.data
+  return data.data
 }
 
 const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
-  // 1) fetch data
   const {
-    data: satellites = [],
+    data: allSats = [],
     isLoading,
     isError,
-  } = useQuery({
+  } = useQuery<Satellite[], Error>({
     queryKey: ['satellites', searchQuery],
     queryFn: () => fetchSatellites(searchQuery),
     placeholderData: keepPreviousData,
   })
+
+  const satellites = useMemo(() => {
+    if (!searchQuery) return allSats
+    const q = searchQuery.toLowerCase()
+    return allSats.filter(
+      (sat) =>
+        sat.name.toLowerCase().includes(q) || String(sat.noradCatId).includes(q)
+    )
+  }, [allSats, searchQuery])
 
   // 2) table columns
   const columns = useMemo<ColumnDef<Satellite>[]>(
