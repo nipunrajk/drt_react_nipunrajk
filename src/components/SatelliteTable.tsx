@@ -101,7 +101,7 @@ interface SatelliteTableProps {
 
 const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
   // Data Fetching
-  const { data: allSats = [], isLoading, isError } = useSatellites(searchQuery)
+  const { data: allSats = [], isLoading, isError } = useSatellites()
 
   // Filtered Data
   const satellites = useMemo(() => {
