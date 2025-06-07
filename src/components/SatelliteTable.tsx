@@ -11,24 +11,13 @@ import { FixedSizeList as List } from 'react-window'
 import type { Satellite } from '../types'
 import { useSatellites } from '../services'
 
-interface SatelliteTableProps {
-  searchQuery: string
-}
+// Constants
+const ROW_HEIGHT = 48
+const MAX_TABLE_HEIGHT = 600
 
-const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
-  const { data: allSats = [], isLoading, isError } = useSatellites(searchQuery)
-
-  const satellites = useMemo(() => {
-    if (!searchQuery) return allSats
-    const q = searchQuery.toLowerCase()
-    return allSats.filter(
-      (sat) =>
-        sat.name.toLowerCase().includes(q) || String(sat.noradCatId).includes(q)
-    )
-  }, [allSats, searchQuery])
-
-  // 2) table columns
-  const columns = useMemo<ColumnDef<Satellite>[]>(
+// Column Definitions
+const useTableColumns = () => {
+  return useMemo<ColumnDef<Satellite>[]>(
     () => [
       {
         accessorKey: 'name',
@@ -42,9 +31,18 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
         cell: (info) => info.getValue(),
         enableSorting: true,
       },
-      { accessorKey: 'orbitCode', header: 'Orbit Code' },
-      { accessorKey: 'objectType', header: 'Object Type' },
-      { accessorKey: 'countryCode', header: 'Country' },
+      {
+        accessorKey: 'orbitCode',
+        header: 'Orbit Code',
+      },
+      {
+        accessorKey: 'objectType',
+        header: 'Object Type',
+      },
+      {
+        accessorKey: 'countryCode',
+        header: 'Country',
+      },
       {
         accessorKey: 'launchDate',
         header: 'Launch Date',
@@ -54,11 +52,71 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
     ],
     []
   )
+}
 
-  // 3) sorting state
+// Table Header Component
+const TableHeader: React.FC<{ table: any }> = ({ table }) => (
+  <div className='flex bg-gray-100 font-semibold'>
+    {table.getHeaderGroups()[0].headers.map((header: any) => (
+      <div
+        key={header.id}
+        className='flex-1 p-2 cursor-pointer select-none'
+        onClick={header.column.getToggleSortingHandler()}
+      >
+        {flexRender(header.column.columnDef.header, header.getContext())}
+        {{
+          asc: ' 🔼',
+          desc: ' 🔽',
+        }[header.column.getIsSorted() as string] ?? null}
+      </div>
+    ))}
+  </div>
+)
+
+// Table Row Component
+const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
+  row,
+  style,
+}) => (
+  <div style={style} className='flex border-b last:border-0 hover:bg-gray-50'>
+    {row.getVisibleCells().map((cell: any) => (
+      <div key={cell.id} className='flex-1 p-2'>
+        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+      </div>
+    ))}
+  </div>
+)
+
+// Loading and Error States
+const LoadingState = () => <div className='p-4'>Loading satellites…</div>
+const ErrorState = () => (
+  <div className='p-4 text-red-600'>Failed to load data.</div>
+)
+const EmptyState = () => <div className='p-4'>No results found.</div>
+
+// Main Component
+interface SatelliteTableProps {
+  searchQuery: string
+}
+
+const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
+  // Data Fetching
+  const { data: allSats = [], isLoading, isError } = useSatellites(searchQuery)
+
+  // Filtered Data
+  const satellites = useMemo(() => {
+    if (!searchQuery) return allSats
+    const q = searchQuery.toLowerCase()
+    return allSats.filter(
+      (sat) =>
+        sat.name.toLowerCase().includes(q) || String(sat.noradCatId).includes(q)
+    )
+  }, [allSats, searchQuery])
+
+  // Table Setup
+  const columns = useTableColumns()
   const [sorting, setSorting] = React.useState<SortingState>([])
 
-  // 4) create table
   const table = useReactTable({
     data: satellites,
     columns,
@@ -68,58 +126,25 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
     getSortedRowModel: getSortedRowModel(),
   })
 
-  // 5) loading / error / empty
-  if (isLoading) return <div className='p-4'>Loading satellites…</div>
-  if (isError)
-    return <div className='p-4 text-red-600'>Failed to load data.</div>
-  if (satellites.length === 0)
-    return <div className='p-4'>No results found.</div>
+  // Render States
+  if (isLoading) return <LoadingState />
+  if (isError) return <ErrorState />
+  if (satellites.length === 0) return <EmptyState />
 
-  // 6) virtualized list of rows
+  // Get Rows
   const rows = table.getRowModel().rows
-  const rowHeight = 48
 
   return (
     <div className='border rounded'>
-      {/* Header */}
-      <div className='flex bg-gray-100 font-semibold'>
-        {table.getHeaderGroups()[0].headers.map((header) => (
-          <div
-            key={header.id}
-            className='flex-1 p-2 cursor-pointer select-none'
-            onClick={header.column.getToggleSortingHandler()}
-          >
-            {flexRender(header.column.columnDef.header, header.getContext())}
-            {{
-              asc: ' 🔼',
-              desc: ' 🔽',
-            }[header.column.getIsSorted() as string] ?? null}
-          </div>
-        ))}
-      </div>
+      <TableHeader table={table} />
 
-      {/* Virtualized body */}
       <List
-        height={Math.min(rows.length * rowHeight, 600)}
+        height={Math.min(rows.length * ROW_HEIGHT, MAX_TABLE_HEIGHT)}
         itemCount={rows.length}
-        itemSize={rowHeight}
+        itemSize={ROW_HEIGHT}
         width='100%'
       >
-        {({ index, style }) => {
-          const row = rows[index]
-          return (
-            <div
-              style={style}
-              className='flex border-b last:border-0 hover:bg-gray-50'
-            >
-              {row.getVisibleCells().map((cell) => (
-                <div key={cell.id} className='flex-1 p-2'>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </div>
-              ))}
-            </div>
-          )
-        }}
+        {({ index, style }) => <TableRow row={rows[index]} style={style} />}
       </List>
     </div>
   )
