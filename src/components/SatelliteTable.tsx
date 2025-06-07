@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import {
   type ColumnDef,
   flexRender,
@@ -6,6 +6,8 @@ import {
   useReactTable,
   getSortedRowModel,
   type SortingState,
+  type Row,
+  type Cell,
 } from '@tanstack/react-table'
 import { FixedSizeList as List } from 'react-window'
 import type { Satellite } from '../types'
@@ -15,64 +17,85 @@ import { useStore } from '../store/useStore'
 // Constants
 const ROW_HEIGHT = 48
 const MAX_TABLE_HEIGHT = 600
+const OVERSCAN_COUNT = 5
+const MOBILE_BREAKPOINT = 768 // px
 
 // Column Definitions
-const useTableColumns = () => {
+const useTableColumns = (isMobile: boolean) => {
   const selected = useStore((s) => s.selected)
   const add = useStore((s) => s.add)
   const remove = useStore((s) => s.remove)
 
   return useMemo<ColumnDef<Satellite>[]>(
-    () => [
-      {
-        id: 'select',
-        header: () => <></>, // could show a “☐” or count badge
-        cell: ({ row }) => {
-          const id = row.original.noradCatId
-          const checked = selected.includes(id)
-          return (
-            <input
-              type='checkbox'
-              checked={checked}
-              onChange={() => (checked ? remove(id) : add(id))}
-              disabled={!checked && selected.length >= 10}
-            />
-          )
+    () =>
+      [
+        {
+          id: 'select',
+          header: () => <div className='w-12' />,
+          cell: ({ row }: { row: Row<Satellite> }) => {
+            const id = row.original.noradCatId
+            const checked = selected.includes(id)
+            return (
+              <div className='flex items-center justify-center'>
+                <input
+                  type='checkbox'
+                  checked={checked}
+                  onChange={() => (checked ? remove(id) : add(id))}
+                  disabled={!checked && selected.length >= 10}
+                  className='w-4 h-4 cursor-pointer'
+                />
+              </div>
+            )
+          },
+          size: 48,
+          minSize: 48,
+          maxSize: 48,
         },
-        size: 40,
-      },
-      {
-        accessorKey: 'name',
-        header: 'Name',
-        cell: (info) => info.getValue(),
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'noradCatId',
-        header: 'NORAD ID',
-        cell: (info) => info.getValue(),
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'orbitCode',
-        header: 'Orbit Code',
-      },
-      {
-        accessorKey: 'objectType',
-        header: 'Object Type',
-      },
-      {
-        accessorKey: 'countryCode',
-        header: 'Country',
-      },
-      {
-        accessorKey: 'launchDate',
-        header: 'Launch Date',
-        cell: (info) =>
-          new Date(info.getValue() as string).toLocaleDateString(),
-      },
-    ],
-    [selected, add, remove]
+        {
+          accessorKey: 'name',
+          header: 'Name',
+          cell: (info: { getValue: () => any }) => info.getValue(),
+          enableSorting: true,
+          size: isMobile ? 150 : 300,
+          minSize: 150,
+        },
+        {
+          accessorKey: 'noradCatId',
+          header: 'NORAD ID',
+          cell: (info: { getValue: () => any }) => info.getValue(),
+          enableSorting: true,
+          size: isMobile ? 100 : 120,
+          minSize: 100,
+        },
+        !isMobile && {
+          accessorKey: 'orbitCode',
+          header: 'Orbit Code',
+          size: 120,
+          minSize: 100,
+        },
+        {
+          accessorKey: 'objectType',
+          header: 'Object Type',
+          size: isMobile ? 120 : 150,
+          minSize: 120,
+        },
+        !isMobile && {
+          accessorKey: 'countryCode',
+          header: 'Country',
+          size: 100,
+          minSize: 80,
+        },
+        {
+          accessorKey: 'launchDate',
+          header: 'Launch Date',
+          cell: (info: { getValue: () => string }) =>
+            new Date(info.getValue()).toLocaleDateString(),
+          size: isMobile ? 120 : 150,
+          minSize: 120,
+          enableSorting: true,
+        },
+      ].filter(Boolean) as ColumnDef<Satellite>[],
+    [selected, add, remove, isMobile]
   )
 }
 
@@ -110,11 +133,15 @@ const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
 )
 
 // Loading and Error States
-const LoadingState = () => <div className='p-4'>Loading satellites…</div>
+const LoadingState = () => (
+  <div className='p-4 text-gray-600'>Loading satellites…</div>
+)
 const ErrorState = () => (
   <div className='p-4 text-red-600'>Failed to load data.</div>
 )
-const EmptyState = () => <div className='p-4'>No results found.</div>
+const EmptyState = () => (
+  <div className='p-4 text-gray-600'>No results found.</div>
+)
 
 // Main Component
 interface SatelliteTableProps {
@@ -122,6 +149,25 @@ interface SatelliteTableProps {
 }
 
 const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
+  // Responsive state
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Handle resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    }
+
+    // Initial check
+    handleResize()
+
+    // Add listener
+    window.addEventListener('resize', handleResize)
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // Data Fetching
   const { data: allSats = [], isLoading, isError } = useSatellites()
 
@@ -136,7 +182,7 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
   }, [allSats, searchQuery])
 
   // Table Setup
-  const columns = useTableColumns()
+  const columns = useTableColumns(isMobile)
   const [sorting, setSorting] = React.useState<SortingState>([])
 
   const table = useReactTable({
@@ -157,17 +203,25 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
   const rows = table.getRowModel().rows
 
   return (
-    <div className='border rounded'>
-      <TableHeader table={table} />
-
-      <List
-        height={Math.min(rows.length * ROW_HEIGHT, MAX_TABLE_HEIGHT)}
-        itemCount={rows.length}
-        itemSize={ROW_HEIGHT}
-        width='100%'
-      >
-        {({ index, style }) => <TableRow row={rows[index]} style={style} />}
-      </List>
+    <div className='w-full border border-gray-200 rounded-lg overflow-hidden'>
+      <div className='overflow-x-auto'>
+        <div className={`w-full ${isMobile ? 'min-w-[600px]' : ''}`}>
+          <TableHeader table={table} />
+          <div className='overflow-auto'>
+            <List
+              height={Math.min(rows.length * ROW_HEIGHT, MAX_TABLE_HEIGHT)}
+              itemCount={rows.length}
+              itemSize={ROW_HEIGHT}
+              width='100%'
+              overscanCount={OVERSCAN_COUNT}
+            >
+              {({ index, style }) => (
+                <TableRow row={rows[index]} style={style} />
+              )}
+            </List>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
