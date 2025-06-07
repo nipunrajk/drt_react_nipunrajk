@@ -4,9 +4,10 @@ interface AppState {
   selected: number[]
   add: (id: number) => void
   remove: (id: number) => void
+  clear: () => void
 }
 
-export const useStore = create<AppState>((set) => ({
+export const useStore = create<AppState>((set, get) => ({
   selected: [],
   add: (id) =>
     set((state) => ({
@@ -19,4 +20,5 @@ export const useStore = create<AppState>((set) => ({
     set((state) => ({
       selected: state.selected.filter((x) => x !== id),
     })),
+  clear: () => set({ selected: [] }),
 }))

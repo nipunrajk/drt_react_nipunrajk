@@ -10,6 +10,7 @@ import {
 import { FixedSizeList as List } from 'react-window'
 import type { Satellite } from '../types'
 import { useSatellites } from '../services'
+import { useStore } from '../store/useStore'
 
 // Constants
 const ROW_HEIGHT = 48
@@ -17,8 +18,29 @@ const MAX_TABLE_HEIGHT = 600
 
 // Column Definitions
 const useTableColumns = () => {
+  const selected = useStore((s) => s.selected)
+  const add = useStore((s) => s.add)
+  const remove = useStore((s) => s.remove)
+
   return useMemo<ColumnDef<Satellite>[]>(
     () => [
+      {
+        id: 'select',
+        header: () => <></>, // could show a “☐” or count badge
+        cell: ({ row }) => {
+          const id = row.original.noradCatId
+          const checked = selected.includes(id)
+          return (
+            <input
+              type='checkbox'
+              checked={checked}
+              onChange={() => (checked ? remove(id) : add(id))}
+              disabled={!checked && selected.length >= 10}
+            />
+          )
+        },
+        size: 40,
+      },
       {
         accessorKey: 'name',
         header: 'Name',
@@ -50,7 +72,7 @@ const useTableColumns = () => {
           new Date(info.getValue() as string).toLocaleDateString(),
       },
     ],
-    []
+    [selected, add, remove]
   )
 }
 
