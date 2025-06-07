@@ -5,6 +5,27 @@ import SelectedAssets from './components/SelectedAssets'
 import { useSatellites } from './services'
 import { useStore } from './store/useStore'
 
+// Stats Bar Component
+const StatsBar: React.FC<{ total: number }> = ({ total }) => (
+  <div className='flex gap-2 mb-6'>
+    <button className='px-4 py-2 rounded-full bg-[#0a192f] text-white border border-[#233554] hover:border-[#64ffda] transition-colors'>
+      All Objects ({total})
+    </button>
+    <button className='px-4 py-2 rounded-full bg-[#0a192f] text-white border border-[#233554] hover:border-[#64ffda] transition-colors'>
+      <span className='text-[#64ffda] mr-2'>•</span>
+      Payloads
+    </button>
+    <button className='px-4 py-2 rounded-full bg-[#0a192f] text-white border border-[#233554] hover:border-[#64ffda] transition-colors'>
+      <span className='text-[#64ffda] mr-2'>⬡</span>
+      Debris
+    </button>
+    <button className='px-4 py-2 rounded-full bg-[#0a192f] text-white border border-[#233554] hover:border-[#64ffda] transition-colors'>
+      <span className='text-[#64ffda] mr-2'>▲</span>
+      Rocket Bodies
+    </button>
+  </div>
+)
+
 function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const { data: allSats = [] } = useSatellites()
@@ -26,7 +47,7 @@ function App() {
   const hasSelection = selected.length > 0
 
   return (
-    <div className='min-h-screen bg-gray-50 flex'>
+    <div className='min-h-screen bg-[#020c1b] flex'>
       {/* Main Content */}
       <div
         className={`flex-1 p-4 overflow-auto transition-all duration-300 ease-in-out ${
@@ -34,7 +55,10 @@ function App() {
         }`}
       >
         <div className='max-w-[1400px] mx-auto'>
-          <h1 className='text-2xl font-bold mb-4'>Satellite Explorer</h1>
+          <h1 className='text-2xl font-bold mb-4 text-white'>
+            Create My Asset list
+          </h1>
+          <StatsBar total={allSats.length} />
           <div className='mb-4 space-y-4'>
             <SearchBar onSearch={setSearchQuery} />
             <button

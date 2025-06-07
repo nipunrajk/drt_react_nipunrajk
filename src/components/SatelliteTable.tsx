@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   type SortingState,
   type Row,
-  type Cell,
+  getFilteredRowModel,
 } from '@tanstack/react-table'
 import { FixedSizeList as List } from 'react-window'
 import type { Satellite } from '../types'
@@ -16,8 +16,8 @@ import { useStore } from '../store/useStore'
 
 // Constants
 const ROW_HEIGHT = 48
-const MAX_TABLE_HEIGHT = 600
-const OVERSCAN_COUNT = 5
+const HEADER_HEIGHT = 40
+const OVERSCAN_COUNT = 10
 const MOBILE_BREAKPOINT = 768 // px
 
 // Column Definitions
@@ -27,92 +27,104 @@ const useTableColumns = (isMobile: boolean) => {
   const remove = useStore((s) => s.remove)
 
   return useMemo<ColumnDef<Satellite>[]>(
-    () =>
-      [
-        {
-          id: 'select',
-          header: () => <div className='w-12' />,
-          cell: ({ row }: { row: Row<Satellite> }) => {
-            const id = row.original.noradCatId
-            const checked = selected.includes(id)
-            return (
-              <div className='flex items-center justify-center'>
-                <input
-                  type='checkbox'
-                  checked={checked}
-                  onChange={() => (checked ? remove(id) : add(id))}
-                  disabled={!checked && selected.length >= 10}
-                  className='w-4 h-4 cursor-pointer'
-                />
-              </div>
-            )
-          },
-          size: 48,
-          minSize: 48,
-          maxSize: 48,
+    () => [
+      {
+        id: 'select',
+        header: () => <div className='w-12' />,
+        cell: ({ row }: { row: Row<Satellite> }) => {
+          const id = row.original.noradCatId
+          const checked = selected.includes(id)
+          return (
+            <div className='flex items-center justify-center'>
+              <input
+                type='checkbox'
+                checked={checked}
+                onChange={() => (checked ? remove(id) : add(id))}
+                disabled={!checked && selected.length >= 10}
+                className='w-4 h-4 cursor-pointer accent-[#64ffda] bg-transparent border-[#233554]'
+              />
+            </div>
+          )
         },
-        {
-          accessorKey: 'name',
-          header: 'Name',
-          cell: (info: { getValue: () => any }) => info.getValue(),
-          enableSorting: true,
-          size: isMobile ? 150 : 300,
-          minSize: 150,
+      },
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        cell: (info: { getValue: () => any }) => info.getValue(),
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'noradCatId',
+        header: 'NORAD ID',
+        cell: (info: { getValue: () => any }) => info.getValue(),
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'orbitCode',
+        header: 'Orbit Code',
+        cell: (info: { getValue: () => any }) => info.getValue(),
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'objectType',
+        header: 'Object Type',
+        cell: (info: { getValue: () => any }) => info.getValue(),
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'countryCode',
+        header: 'Country',
+        cell: (info: { getValue: () => any }) => info.getValue(),
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'launchDate',
+        header: 'Launch Date',
+        cell: (info) => {
+          const value = info.getValue() as string
+          const date = new Date(value)
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          })
         },
-        {
-          accessorKey: 'noradCatId',
-          header: 'NORAD ID',
-          cell: (info: { getValue: () => any }) => info.getValue(),
-          enableSorting: true,
-          size: isMobile ? 100 : 120,
-          minSize: 100,
-        },
-        !isMobile && {
-          accessorKey: 'orbitCode',
-          header: 'Orbit Code',
-          size: 120,
-          minSize: 100,
-        },
-        {
-          accessorKey: 'objectType',
-          header: 'Object Type',
-          size: isMobile ? 120 : 150,
-          minSize: 120,
-        },
-        !isMobile && {
-          accessorKey: 'countryCode',
-          header: 'Country',
-          size: 100,
-          minSize: 80,
-        },
-        {
-          accessorKey: 'launchDate',
-          header: 'Launch Date',
-          cell: (info: { getValue: () => string }) =>
-            new Date(info.getValue()).toLocaleDateString(),
-          size: isMobile ? 120 : 150,
-          minSize: 120,
-          enableSorting: true,
-        },
-      ].filter(Boolean) as ColumnDef<Satellite>[],
-    [selected, add, remove, isMobile]
+        enableSorting: true,
+      },
+    ],
+    [selected, add, remove]
   )
 }
 
 // Table Header Component
 const TableHeader: React.FC<{ table: any }> = ({ table }) => (
-  <div className='flex bg-gray-100 font-semibold'>
+  <div className='flex bg-[#0a192f] text-white border-b border-[#233554]'>
     {table.getHeaderGroups()[0].headers.map((header: any) => (
       <div
         key={header.id}
-        className='flex-1 p-2 cursor-pointer select-none'
-        onClick={header.column.getToggleSortingHandler()}
+        className={`p-3 select-none ${
+          header.id === 'select' ? 'w-12' : 'flex-1'
+        } ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
+        onClick={
+          header.column.getCanSort()
+            ? header.column.getToggleSortingHandler()
+            : undefined
+        }
       >
-        {flexRender(header.column.columnDef.header, header.getContext())}
-        {{
-          asc: ' 🔼',
-          desc: ' 🔽',
-        }[header.column.getIsSorted() as string] ?? null}
+        <div className='flex items-center justify-between'>
+          <span className='whitespace-nowrap overflow-hidden text-ellipsis'>
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </span>
+          {header.column.getCanSort() && (
+            <span className='ml-2 flex-shrink-0 text-[#64ffda]'>
+              {header.column.getIsSorted()
+                ? header.column.getIsSorted() === 'asc'
+                  ? '↑'
+                  : '↓'
+                : '↕'}
+            </span>
+          )}
+        </div>
       </div>
     ))}
   </div>
@@ -123,9 +135,15 @@ const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
   row,
   style,
 }) => (
-  <div style={style} className='flex border-b last:border-0 hover:bg-gray-50'>
+  <div
+    style={style}
+    className='flex border-b border-[#233554] hover:bg-[#112240] text-white'
+  >
     {row.getVisibleCells().map((cell: any) => (
-      <div key={cell.id} className='flex-1 p-2'>
+      <div
+        key={cell.id}
+        className={`p-3 ${cell.column.id === 'select' ? 'w-12' : 'flex-1'}`}
+      >
         {flexRender(cell.column.columnDef.cell, cell.getContext())}
       </div>
     ))}
@@ -134,13 +152,13 @@ const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
 
 // Loading and Error States
 const LoadingState = () => (
-  <div className='p-4 text-gray-600'>Loading satellites…</div>
+  <div className='p-4 text-[#64ffda]'>Loading satellites…</div>
 )
 const ErrorState = () => (
-  <div className='p-4 text-red-600'>Failed to load data.</div>
+  <div className='p-4 text-red-500'>Failed to load data.</div>
 )
 const EmptyState = () => (
-  <div className='p-4 text-gray-600'>No results found.</div>
+  <div className='p-4 text-[#64ffda]'>No results found.</div>
 )
 
 // Main Component
@@ -151,20 +169,21 @@ interface SatelliteTableProps {
 const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
   // Responsive state
   const [isMobile, setIsMobile] = useState(false)
+  const [tableHeight, setTableHeight] = useState(600)
 
   // Handle resize
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      // Calculate available height for table
+      const windowHeight = window.innerHeight
+      const topOffset =
+        document.getElementById('table-container')?.offsetTop || 0
+      setTableHeight(windowHeight - topOffset - 40) // 40px padding
     }
 
-    // Initial check
     handleResize()
-
-    // Add listener
     window.addEventListener('resize', handleResize)
-
-    // Cleanup
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
@@ -192,6 +211,7 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   })
 
   // Render States
@@ -203,24 +223,22 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
   const rows = table.getRowModel().rows
 
   return (
-    <div className='w-full border border-gray-200 rounded-lg overflow-hidden'>
-      <div className='overflow-x-auto'>
-        <div className={`w-full ${isMobile ? 'min-w-[600px]' : ''}`}>
-          <TableHeader table={table} />
-          <div className='overflow-auto'>
-            <List
-              height={Math.min(rows.length * ROW_HEIGHT, MAX_TABLE_HEIGHT)}
-              itemCount={rows.length}
-              itemSize={ROW_HEIGHT}
-              width='100%'
-              overscanCount={OVERSCAN_COUNT}
-            >
-              {({ index, style }) => (
-                <TableRow row={rows[index]} style={style} />
-              )}
-            </List>
-          </div>
-        </div>
+    <div
+      className='bg-[#0a192f] rounded-lg overflow-hidden'
+      id='table-container'
+    >
+      <div className='w-full'>
+        <TableHeader table={table} />
+        <List
+          height={tableHeight}
+          itemCount={rows.length}
+          itemSize={ROW_HEIGHT}
+          width='100%'
+          overscanCount={OVERSCAN_COUNT}
+          className='scrollbar-thin scrollbar-thumb-[#233554] scrollbar-track-transparent'
+        >
+          {({ index, style }) => <TableRow row={rows[index]} style={style} />}
+        </List>
       </div>
     </div>
   )
