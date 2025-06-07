@@ -5,10 +5,12 @@ import SelectedAssets from './components/SelectedAssets'
 import { useSatellites } from './services'
 import { useStore } from './store/useStore'
 import CategoryFilter from './components/CategoryFilter'
+import OrbitCodeFilter from './components/OrbitCodeFilter'
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedOrbitCodes, setSelectedOrbitCodes] = useState<string[]>([])
   const { data: allSats = [] } = useSatellites()
   const clear = useStore((s) => s.clear)
   const add = useStore((s) => s.add)
@@ -48,7 +50,16 @@ function App() {
           />
 
           <div className='mb-4 space-y-4'>
-            <SearchBar onSearch={setSearchQuery} />
+            <div className='flex gap-2 items-center'>
+              <div className='flex-1'>
+                <SearchBar onSearch={setSearchQuery} />
+              </div>
+              <OrbitCodeFilter
+                data={allSats}
+                selectedOrbitCodes={selectedOrbitCodes}
+                onOrbitCodeChange={setSelectedOrbitCodes}
+              />
+            </div>
             <button
               className='px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50'
               onClick={handleSelectFirstTen}
@@ -61,6 +72,7 @@ function App() {
           <SatelliteTable
             searchQuery={searchQuery}
             selectedCategory={selectedCategory}
+            selectedOrbitCodes={selectedOrbitCodes}
           />
         </div>
       </div>

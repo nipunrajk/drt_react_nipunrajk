@@ -33,7 +33,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ data, onApplyFilters }) => {
 
   // Apply filters immediately when selection changes
   useEffect(() => {
-    onApplyFilters({ orbitCodes: selectedOrbitCodes })
+    onApplyFilters({
+      // When applying filters, wrap codes in curly braces to match data format
+      orbitCodes: selectedOrbitCodes.map((code) => `{${code}}`),
+    })
   }, [selectedOrbitCodes, onApplyFilters])
 
   const toggleOrbitCode = (code: string) => {
@@ -42,9 +45,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ data, onApplyFilters }) => {
     )
   }
 
-  // Get counts for each orbit code
+  // Get counts for each orbit code, considering the curly brace format
   const getOrbitCodeCount = (code: string) => {
-    return data.filter((item) => item.orbitCode === code).length
+    return data.filter((item) => item.orbitCode === `{${code}}`).length
   }
 
   return (

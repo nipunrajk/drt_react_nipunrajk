@@ -21,6 +21,9 @@ const HEADER_HEIGHT = 40
 const OVERSCAN_COUNT = 10
 const MOBILE_BREAKPOINT = 768 // px
 
+// Helper function to clean orbit code for display
+const cleanOrbitCode = (code: string) => code?.replace(/[{}]/g, '') || code
+
 // Column Definitions
 const useTableColumns = (isMobile: boolean) => {
   const selected = useStore((s) => s.selected)
@@ -63,7 +66,8 @@ const useTableColumns = (isMobile: boolean) => {
       {
         accessorKey: 'orbitCode',
         header: 'Orbit Code',
-        cell: (info: { getValue: () => any }) => info.getValue(),
+        cell: (info: { getValue: () => any }) =>
+          cleanOrbitCode(info.getValue()),
         enableSorting: false,
       },
       {
@@ -166,22 +170,17 @@ const EmptyState = () => (
 interface SatelliteTableProps {
   searchQuery: string
   selectedCategory: string | null
+  selectedOrbitCodes: string[]
 }
 
 const SatelliteTable: React.FC<SatelliteTableProps> = ({
   searchQuery,
   selectedCategory,
+  selectedOrbitCodes,
 }) => {
   // Responsive state
   const [isMobile, setIsMobile] = useState(false)
   const [tableHeight, setTableHeight] = useState(600)
-
-  // Filter states
-  const [activeFilters, setActiveFilters] = useState<{
-    orbitCodes: string[]
-  }>({
-    orbitCodes: [],
-  })
 
   // Handle resize
   useEffect(() => {
@@ -221,14 +220,14 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
     }
 
     // Apply orbit code filters
-    if (activeFilters.orbitCodes.length > 0) {
+    if (selectedOrbitCodes.length > 0) {
       filtered = filtered.filter((sat) =>
-        activeFilters.orbitCodes.includes(sat.orbitCode)
+        selectedOrbitCodes.some((code) => sat.orbitCode === `{${code}}`)
       )
     }
 
     return filtered
-  }, [allSats, searchQuery, selectedCategory, activeFilters])
+  }, [allSats, searchQuery, selectedCategory, selectedOrbitCodes])
 
   // Table Setup
   const columns = useTableColumns(isMobile)
@@ -253,30 +252,22 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
   const rows = table.getRowModel().rows
 
   return (
-    <div className='flex gap-4'>
-      {/* Filter Panel */}
-      <div className='w-64 flex-shrink-0'>
-        <FilterPanel data={allSats} onApplyFilters={setActiveFilters} />
-      </div>
-
-      {/* Table */}
-      <div
-        className='flex-1 bg-[#0a192f] rounded-lg overflow-hidden'
-        id='table-container'
-      >
-        <div className='w-full'>
-          <TableHeader table={table} />
-          <List
-            height={tableHeight}
-            itemCount={rows.length}
-            itemSize={ROW_HEIGHT}
-            width='100%'
-            overscanCount={OVERSCAN_COUNT}
-            className='scrollbar-thin scrollbar-thumb-[#233554] scrollbar-track-transparent'
-          >
-            {({ index, style }) => <TableRow row={rows[index]} style={style} />}
-          </List>
-        </div>
+    <div
+      className='bg-[#0a192f] rounded-lg overflow-hidden'
+      id='table-container'
+    >
+      <div className='w-full'>
+        <TableHeader table={table} />
+        <List
+          height={tableHeight}
+          itemCount={rows.length}
+          itemSize={ROW_HEIGHT}
+          width='100%'
+          overscanCount={OVERSCAN_COUNT}
+          className='scrollbar-thin scrollbar-thumb-[#233554] scrollbar-track-transparent'
+        >
+          {({ index, style }) => <TableRow row={rows[index]} style={style} />}
+        </List>
       </div>
     </div>
   )
