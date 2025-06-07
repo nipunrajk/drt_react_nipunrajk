@@ -13,12 +13,16 @@ import { FixedSizeList as List } from 'react-window'
 import type { Satellite } from '../types'
 import { useSatellites } from '../services'
 import { useStore } from '../store/useStore'
+import FilterPanel from './FilterPanel'
 
 // Constants
 const ROW_HEIGHT = 48
 const HEADER_HEIGHT = 40
 const OVERSCAN_COUNT = 10
 const MOBILE_BREAKPOINT = 768 // px
+
+// Helper function to clean orbit code for display
+const cleanOrbitCode = (code: string) => code?.replace(/[{}]/g, '') || code
 
 // Column Definitions
 const useTableColumns = (isMobile: boolean) => {
@@ -62,7 +66,8 @@ const useTableColumns = (isMobile: boolean) => {
       {
         accessorKey: 'orbitCode',
         header: 'Orbit Code',
-        cell: (info: { getValue: () => any }) => info.getValue(),
+        cell: (info: { getValue: () => any }) =>
+          cleanOrbitCode(info.getValue()),
         enableSorting: false,
       },
       {
@@ -164,9 +169,15 @@ const EmptyState = () => (
 // Main Component
 interface SatelliteTableProps {
   searchQuery: string
+  selectedCategory: string | null
+  selectedOrbitCodes: string[]
 }
 
-const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
+const SatelliteTable: React.FC<SatelliteTableProps> = ({
+  searchQuery,
+  selectedCategory,
+  selectedOrbitCodes,
+}) => {
   // Responsive state
   const [isMobile, setIsMobile] = useState(false)
   const [tableHeight, setTableHeight] = useState(600)
@@ -175,11 +186,10 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-      // Calculate available height for table
       const windowHeight = window.innerHeight
       const topOffset =
         document.getElementById('table-container')?.offsetTop || 0
-      setTableHeight(windowHeight - topOffset - 40) // 40px padding
+      setTableHeight(windowHeight - topOffset - 40)
     }
 
     handleResize()
@@ -192,13 +202,32 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({ searchQuery }) => {
 
   // Filtered Data
   const satellites = useMemo(() => {
-    if (!searchQuery) return allSats
-    const q = searchQuery.toLowerCase()
-    return allSats.filter(
-      (sat) =>
-        sat.name.toLowerCase().includes(q) || String(sat.noradCatId).includes(q)
-    )
-  }, [allSats, searchQuery])
+    let filtered = allSats
+
+    // Apply category filter
+    if (selectedCategory) {
+      filtered = filtered.filter((sat) => sat.objectType === selectedCategory)
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (sat) =>
+          sat.name.toLowerCase().includes(q) ||
+          String(sat.noradCatId).includes(q)
+      )
+    }
+
+    // Apply orbit code filters
+    if (selectedOrbitCodes.length > 0) {
+      filtered = filtered.filter((sat) =>
+        selectedOrbitCodes.some((code) => sat.orbitCode === `{${code}}`)
+      )
+    }
+
+    return filtered
+  }, [allSats, searchQuery, selectedCategory, selectedOrbitCodes])
 
   // Table Setup
   const columns = useTableColumns(isMobile)
