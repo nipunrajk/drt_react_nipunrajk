@@ -23,26 +23,39 @@ function App() {
     allSats.slice(0, 10).forEach((sat) => add(sat.noradCatId))
   }
 
+  const hasSelection = selected.length > 0
+
   return (
-    <div className='min-h-screen bg-gray-50'>
-      <div className='max-w-[1400px] mx-auto p-4'>
-        <h1 className='text-2xl font-bold mb-4'>Satellite Explorer</h1>
-        <div className='mb-4 space-y-4'>
-          <SearchBar onSearch={setSearchQuery} />
-          <button
-            className='px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50'
-            onClick={handleSelectFirstTen}
-            disabled={allSats.length < 10}
-          >
-            {selected.length > 0 ? 'Clear Selection' : 'Select First 10'}
-          </button>
-        </div>
-        <div className='flex items-start'>
-          <div className='flex-1'>
-            <SatelliteTable searchQuery={searchQuery} />
+    <div className='min-h-screen bg-gray-50 flex'>
+      {/* Main Content */}
+      <div
+        className={`flex-1 p-4 overflow-auto transition-all duration-300 ease-in-out ${
+          hasSelection ? 'pr-[320px]' : ''
+        }`}
+      >
+        <div className='max-w-[1400px] mx-auto'>
+          <h1 className='text-2xl font-bold mb-4'>Satellite Explorer</h1>
+          <div className='mb-4 space-y-4'>
+            <SearchBar onSearch={setSearchQuery} />
+            <button
+              className='px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50'
+              onClick={handleSelectFirstTen}
+              disabled={allSats.length < 10}
+            >
+              {hasSelection ? 'Clear Selection' : 'Select First 10'}
+            </button>
           </div>
-          <SelectedAssets satellites={allSats} />
+          <SatelliteTable searchQuery={searchQuery} />
         </div>
+      </div>
+
+      {/* Animated Sidebar */}
+      <div
+        className={`fixed right-0 top-0 w-80 h-screen transform transition-transform duration-300 ease-in-out ${
+          hasSelection ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <SelectedAssets satellites={allSats} />
       </div>
     </div>
   )

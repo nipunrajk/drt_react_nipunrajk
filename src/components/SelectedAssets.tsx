@@ -15,10 +15,8 @@ const SelectedAssets: React.FC<SelectedAssetsProps> = ({ satellites }) => {
     selected.includes(sat.noradCatId)
   )
 
-  if (selected.length === 0) return null
-
   return (
-    <div className='w-80 bg-[#0a192f] text-white rounded-lg p-4 ml-4'>
+    <div className='h-full bg-[#0a192f] text-white p-4 flex flex-col shadow-[-4px_0_15px_rgba(0,0,0,0.1)]'>
       <h2 className='text-2xl mb-4'>Selected Assets</h2>
       <div className='flex justify-between items-center mb-4 text-[#64ffda]'>
         <span>{selected.length} objects selected</span>
@@ -26,7 +24,7 @@ const SelectedAssets: React.FC<SelectedAssetsProps> = ({ satellites }) => {
           Clean all <span className='ml-2'>×</span>
         </button>
       </div>
-      <div className='space-y-2'>
+      <div className='flex-1 overflow-auto space-y-2'>
         {selectedSatellites.map((sat) => (
           <div
             key={sat.noradCatId}
@@ -34,11 +32,11 @@ const SelectedAssets: React.FC<SelectedAssetsProps> = ({ satellites }) => {
           >
             <div className='flex items-center'>
               <span className='text-[#64ffda] mr-3'>{sat.noradCatId}</span>
-              <span>{sat.name}</span>
+              <span className='truncate'>{sat.name}</span>
             </div>
             <button
               onClick={() => remove(sat.noradCatId)}
-              className='text-[#64ffda] hover:text-white'
+              className='text-[#64ffda] hover:text-white ml-2 flex-shrink-0'
             >
               ×
             </button>
