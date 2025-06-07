@@ -4,30 +4,11 @@ import SatelliteTable from './components/SatelliteTable'
 import SelectedAssets from './components/SelectedAssets'
 import { useSatellites } from './services'
 import { useStore } from './store/useStore'
-
-// Stats Bar Component
-const StatsBar: React.FC<{ total: number }> = ({ total }) => (
-  <div className='flex gap-2 mb-6'>
-    <button className='px-4 py-2 rounded-full bg-[#0a192f] text-white border border-[#233554] hover:border-[#64ffda] transition-colors'>
-      All Objects ({total})
-    </button>
-    <button className='px-4 py-2 rounded-full bg-[#0a192f] text-white border border-[#233554] hover:border-[#64ffda] transition-colors'>
-      <span className='text-[#64ffda] mr-2'>•</span>
-      Payloads
-    </button>
-    <button className='px-4 py-2 rounded-full bg-[#0a192f] text-white border border-[#233554] hover:border-[#64ffda] transition-colors'>
-      <span className='text-[#64ffda] mr-2'>⬡</span>
-      Debris
-    </button>
-    <button className='px-4 py-2 rounded-full bg-[#0a192f] text-white border border-[#233554] hover:border-[#64ffda] transition-colors'>
-      <span className='text-[#64ffda] mr-2'>▲</span>
-      Rocket Bodies
-    </button>
-  </div>
-)
+import CategoryFilter from './components/CategoryFilter'
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const { data: allSats = [] } = useSatellites()
   const clear = useStore((s) => s.clear)
   const add = useStore((s) => s.add)
@@ -58,7 +39,14 @@ function App() {
           <h1 className='text-2xl font-bold mb-4 text-white'>
             Create My Asset list
           </h1>
-          <StatsBar total={allSats.length} />
+
+          {/* Category Filter */}
+          <CategoryFilter
+            data={allSats}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
+
           <div className='mb-4 space-y-4'>
             <SearchBar onSearch={setSearchQuery} />
             <button
@@ -69,7 +57,11 @@ function App() {
               {hasSelection ? 'Clear Selection' : 'Select First 10'}
             </button>
           </div>
-          <SatelliteTable searchQuery={searchQuery} />
+
+          <SatelliteTable
+            searchQuery={searchQuery}
+            selectedCategory={selectedCategory}
+          />
         </div>
       </div>
 
