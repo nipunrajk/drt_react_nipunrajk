@@ -7,7 +7,7 @@ interface SatelliteResponse {
   message: string
 }
 
-export const fetchSatellites = async (searchQuery: string) => {
+export const fetchSatellites = async (): Promise<Satellite[]> => {
   const params = {
     attributes: [
       'noradCatId',

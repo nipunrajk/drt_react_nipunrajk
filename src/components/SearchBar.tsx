@@ -14,11 +14,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   return (
     <input
       type='text'
-      placeholder='Search by name or NORAD ID'
+      placeholder='Search by Name/ NORAD ID'
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={handleKeyDown}
-      className='border p-2 w-full mb-4 rounded'
+      className='w-full px-4 py-2 rounded-full bg-[#0a192f] text-white border border-[#233554] focus:border-[#64ffda] focus:outline-none placeholder-gray-400'
     />
   )
 }
