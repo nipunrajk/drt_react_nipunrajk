@@ -10,7 +10,7 @@ interface AppState {
 
 export const useStore = create<AppState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       selected: [],
       add: (id) =>
         set((state) => ({

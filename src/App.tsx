@@ -119,6 +119,7 @@ function MainContent() {
             searchQuery={searchQuery}
             selectedCategories={selectedCategories}
             selectedOrbitCodes={selectedOrbitCodes}
+            filteredSatellites={filteredSatellites}
           />
         </div>
       </div>
