@@ -203,12 +203,14 @@ interface SatelliteTableProps {
   searchQuery: string
   selectedCategories: string[]
   selectedOrbitCodes: string[]
+  onFilteredDataChange: (satellites: Satellite[]) => void
 }
 
 const SatelliteTable: React.FC<SatelliteTableProps> = ({
   searchQuery,
   selectedCategories,
   selectedOrbitCodes,
+  onFilteredDataChange,
 }) => {
   const [isMobile, setIsMobile] = useState(false)
   const [tableHeight, setTableHeight] = useState(600)
@@ -347,8 +349,16 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
       )
     }
 
+    // Update parent component with filtered data
+    onFilteredDataChange(filtered)
     return filtered
-  }, [allSats, searchQuery, selectedCategories, selectedOrbitCodes])
+  }, [
+    allSats,
+    searchQuery,
+    selectedCategories,
+    selectedOrbitCodes,
+    onFilteredDataChange,
+  ])
 
   // Table Setup
   const [sorting, setSorting] = React.useState<SortingState>([])

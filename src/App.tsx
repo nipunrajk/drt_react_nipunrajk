@@ -10,11 +10,13 @@ import OrbitCodeFilter from './components/OrbitCodeFilter'
 import SelectedAssetsPage from './pages/SelectedAssetsPage'
 import { Checkbox } from './components/ui/checkbox'
 import { Label } from './components/ui/label'
+import type { Satellite } from './types'
 
 function MainContent() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedOrbitCodes, setSelectedOrbitCodes] = useState<string[]>([])
+  const [filteredSatellites, setFilteredSatellites] = useState<Satellite[]>([])
   const { data: allSats = [] } = useSatellites()
   const clear = useStore((s) => s.clear)
   const add = useStore((s) => s.add)
@@ -27,8 +29,8 @@ function MainContent() {
       return
     }
 
-    // Otherwise, select the first 10
-    allSats.slice(0, 10).forEach((sat) => add(sat.noradCatId))
+    // Select first 10 from filtered results instead of all satellites
+    filteredSatellites.slice(0, 10).forEach((sat) => add(sat.noradCatId))
   }
 
   const hasSelection = selected.length > 0
@@ -42,9 +44,7 @@ function MainContent() {
         }`}
       >
         <div className='max-w-[1400px] mx-auto'>
-          <h1 className='text-2xl font-bold mb-4 text-white'>
-            Create My Asset list
-          </h1>
+          <h1 className='text-2xl font-bold mb-4 text-white'>Digantara</h1>
 
           {/* Category Filter */}
           <CategoryFilter
@@ -88,6 +88,7 @@ function MainContent() {
             searchQuery={searchQuery}
             selectedCategories={selectedCategories}
             selectedOrbitCodes={selectedOrbitCodes}
+            onFilteredDataChange={setFilteredSatellites}
           />
         </div>
       </div>
