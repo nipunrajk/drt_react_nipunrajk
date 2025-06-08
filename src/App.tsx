@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import SatelliteTable from './components/SatelliteTable'
@@ -20,6 +20,37 @@ function MainContent() {
   const add = useStore((s) => s.add)
   const selected = useStore((s) => s.selected)
 
+  // Filter satellites based on selected filters
+  const filteredSatellites = useMemo(() => {
+    let filtered = allSats
+
+    // Apply category filters
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((sat) =>
+        selectedCategories.includes(sat.objectType)
+      )
+    }
+
+    // Apply orbit code filters
+    if (selectedOrbitCodes.length > 0) {
+      filtered = filtered.filter((sat) =>
+        selectedOrbitCodes.some((code) => sat.orbitCode === `{${code}}`)
+      )
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (sat) =>
+          sat.name.toLowerCase().includes(q) ||
+          String(sat.noradCatId).includes(q)
+      )
+    }
+
+    return filtered
+  }, [allSats, selectedCategories, selectedOrbitCodes, searchQuery])
+
   const handleSelectFirstTen = () => {
     // If we already have selections, just clear them
     if (selected.length > 0) {
@@ -27,8 +58,8 @@ function MainContent() {
       return
     }
 
-    // Otherwise, select the first 10
-    allSats.slice(0, 10).forEach((sat) => add(sat.noradCatId))
+    // Select first 10 from filtered satellites
+    filteredSatellites.slice(0, 10).forEach((sat) => add(sat.noradCatId))
   }
 
   const hasSelection = selected.length > 0
