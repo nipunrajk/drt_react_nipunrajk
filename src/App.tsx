@@ -13,7 +13,7 @@ import { Label } from './components/ui/label'
 
 function MainContent() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedOrbitCodes, setSelectedOrbitCodes] = useState<string[]>([])
   const { data: allSats = [] } = useSatellites()
   const clear = useStore((s) => s.clear)
@@ -49,8 +49,8 @@ function MainContent() {
           {/* Category Filter */}
           <CategoryFilter
             data={allSats}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
+            selectedCategories={selectedCategories}
+            onSelectCategories={setSelectedCategories}
           />
 
           <div className='mb-4 space-y-4'>
@@ -86,7 +86,7 @@ function MainContent() {
 
           <SatelliteTable
             searchQuery={searchQuery}
-            selectedCategory={selectedCategory}
+            selectedCategories={selectedCategories}
             selectedOrbitCodes={selectedOrbitCodes}
           />
         </div>

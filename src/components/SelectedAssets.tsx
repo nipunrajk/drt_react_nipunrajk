@@ -39,7 +39,7 @@ const SelectedAssets: React.FC<SelectedAssetsProps> = ({ satellites }) => {
           onClick={clear}
           className='text-[#64ffda] hover:text-white flex items-center gap-2 text-base'
         >
-          Clean all <span className='text-lg'>×</span>
+          Clear all <span className='text-lg'>×</span>
         </button>
       </div>
 

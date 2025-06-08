@@ -201,13 +201,13 @@ const EmptyState = () => (
 // Main Component
 interface SatelliteTableProps {
   searchQuery: string
-  selectedCategory: string | null
+  selectedCategories: string[]
   selectedOrbitCodes: string[]
 }
 
 const SatelliteTable: React.FC<SatelliteTableProps> = ({
   searchQuery,
-  selectedCategory,
+  selectedCategories,
   selectedOrbitCodes,
 }) => {
   const [isMobile, setIsMobile] = useState(false)
@@ -323,9 +323,11 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
   const satellites = useMemo(() => {
     let filtered = allSats
 
-    // Apply category filter
-    if (selectedCategory) {
-      filtered = filtered.filter((sat) => sat.objectType === selectedCategory)
+    // Apply category filters
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((sat) =>
+        selectedCategories.includes(sat.objectType)
+      )
     }
 
     // Apply search filter
@@ -346,7 +348,7 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
     }
 
     return filtered
-  }, [allSats, searchQuery, selectedCategory, selectedOrbitCodes])
+  }, [allSats, searchQuery, selectedCategories, selectedOrbitCodes])
 
   // Table Setup
   const [sorting, setSorting] = React.useState<SortingState>([])
