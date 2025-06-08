@@ -3,14 +3,14 @@ import type { Satellite } from '../types'
 
 interface CategoryFilterProps {
   data: Satellite[]
-  selectedCategory: string | null
-  onSelectCategory: (category: string | null) => void
+  selectedCategories: string[]
+  onSelectCategories: (categories: string[]) => void
 }
 
 const CategoryFilter: React.FC<CategoryFilterProps> = ({
   data,
-  selectedCategory,
-  onSelectCategory,
+  selectedCategories,
+  onSelectCategories,
 }) => {
   // Calculate counts for each category
   const counts = {
@@ -30,14 +30,32 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
     { id: 'UNKNOWN', label: 'Unknown', count: counts.UNKNOWN },
   ]
 
+  const toggleCategory = (categoryId: string) => {
+    if (categoryId === 'all') {
+      // If clicking "All Objects", clear other selections
+      onSelectCategories([])
+      return
+    }
+
+    if (selectedCategories.includes(categoryId)) {
+      onSelectCategories(selectedCategories.filter((id) => id !== categoryId))
+    } else {
+      onSelectCategories([...selectedCategories, categoryId])
+    }
+  }
+
   return (
     <div className='flex gap-4 mb-4'>
       {categories.map(({ id, label, count }) => (
         <button
           key={id}
-          onClick={() => onSelectCategory(id === 'all' ? null : id)}
+          onClick={() => toggleCategory(id)}
           className={`px-4 py-2 rounded-full transition-colors ${
-            (id === 'all' && !selectedCategory) || id === selectedCategory
+            id === 'all'
+              ? selectedCategories.length === 0
+                ? 'bg-[#64ffda] text-[#0a192f] font-semibold'
+                : 'bg-[#112240] text-white hover:bg-[#233554]'
+              : selectedCategories.includes(id)
               ? 'bg-[#64ffda] text-[#0a192f] font-semibold'
               : 'bg-[#112240] text-white hover:bg-[#233554]'
           }`}
