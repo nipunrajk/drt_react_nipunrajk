@@ -8,6 +8,8 @@ import { useStore } from './store/useStore'
 import CategoryFilter from './components/CategoryFilter'
 import OrbitCodeFilter from './components/OrbitCodeFilter'
 import SelectedAssetsPage from './pages/SelectedAssetsPage'
+import { Checkbox } from './components/ui/checkbox'
+import { Label } from './components/ui/label'
 
 function MainContent() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -62,13 +64,24 @@ function MainContent() {
                 onOrbitCodeChange={setSelectedOrbitCodes}
               />
             </div>
-            <button
-              className='px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50'
-              onClick={handleSelectFirstTen}
-              disabled={allSats.length < 10}
-            >
-              {hasSelection ? 'Clear Selection' : 'Select First 10'}
-            </button>
+            <div className='flex items-center gap-4'>
+              <div className='flex items-center space-x-2'>
+                <Checkbox
+                  id='select-all'
+                  checked={selected.length > 0}
+                  onCheckedChange={handleSelectFirstTen}
+                />
+                <Label
+                  htmlFor='select-all'
+                  className='text-sm font-medium leading-none text-[#64ffda] hover:text-white cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                >
+                  {selected.length > 0 ? 'Clear All' : 'Select All'}
+                </Label>
+                <span className='text-white/50 text-sm'>
+                  {selected.length} of 10 selected
+                </span>
+              </div>
+            </div>
           </div>
 
           <SatelliteTable

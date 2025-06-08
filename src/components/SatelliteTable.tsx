@@ -14,6 +14,7 @@ import type { Satellite } from '../types'
 import { useSatellites } from '../services'
 import { useStore } from '../store/useStore'
 import FilterPanel from './FilterPanel'
+import { Checkbox } from './ui/checkbox'
 
 // Constants
 const ROW_HEIGHT = 52
@@ -40,12 +41,11 @@ const useTableColumns = (isMobile: boolean) => {
           const checked = selected.includes(id)
           return (
             <div className='flex items-center justify-center'>
-              <input
-                type='checkbox'
+              <Checkbox
                 checked={checked}
-                onChange={() => (checked ? remove(id) : add(id))}
+                onCheckedChange={(checked) => (checked ? add(id) : remove(id))}
                 disabled={!checked && selected.length >= 10}
-                className='w-5 h-5 cursor-pointer accent-[#64ffda] bg-transparent border-[#233554] rounded-sm'
+                className='data-[state=checked]:bg-[#64ffda] data-[state=checked]:border-[#64ffda] border-[#233554]'
               />
             </div>
           )
@@ -248,6 +248,10 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
     getFilteredRowModel: getFilteredRowModel(),
   })
 
+  // Get selected count from store
+  const selected = useStore((s) => s.selected)
+  const isMaxSelected = selected.length >= 10
+
   // Render States
   if (isLoading) return <LoadingState />
   if (isError) return <ErrorState />
@@ -257,22 +261,34 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
   const rows = table.getRowModel().rows
 
   return (
-    <div
-      className='bg-[#020c1b] rounded-xl overflow-hidden border border-[#233554]/30'
-      id='table-container'
-    >
-      <div className='w-full'>
-        <TableHeader table={table} />
-        <List
-          height={tableHeight}
-          itemCount={rows.length}
-          itemSize={ROW_HEIGHT}
-          width='100%'
-          overscanCount={OVERSCAN_COUNT}
-          className='scrollbar-thin scrollbar-thumb-[#233554] scrollbar-track-transparent'
-        >
-          {({ index, style }) => <TableRow row={rows[index]} style={style} />}
-        </List>
+    <div className='space-y-2'>
+      <div className='flex items-center justify-between'>
+        <span className='text-white/50 text-sm'>
+          {selected.length} of 10 selected
+        </span>
+        {isMaxSelected && (
+          <span className='text-red-500 text-sm'>
+            Maximum of 10 selections allowed
+          </span>
+        )}
+      </div>
+      <div
+        className='bg-[#020c1b] rounded-xl overflow-hidden border border-[#233554]/30'
+        id='table-container'
+      >
+        <div className='w-full'>
+          <TableHeader table={table} />
+          <List
+            height={tableHeight}
+            itemCount={rows.length}
+            itemSize={ROW_HEIGHT}
+            width='100%'
+            overscanCount={OVERSCAN_COUNT}
+            className='scrollbar-thin scrollbar-thumb-[#233554] scrollbar-track-transparent'
+          >
+            {({ index, style }) => <TableRow row={rows[index]} style={style} />}
+          </List>
+        </div>
       </div>
     </div>
   )
