@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 interface AppState {
   selected: number[]
@@ -7,18 +8,26 @@ interface AppState {
   clear: () => void
 }
 
-export const useStore = create<AppState>((set, get) => ({
-  selected: [],
-  add: (id) =>
-    set((state) => ({
-      selected:
-        state.selected.length < 10 && !state.selected.includes(id)
-          ? [...state.selected, id]
-          : state.selected,
-    })),
-  remove: (id) =>
-    set((state) => ({
-      selected: state.selected.filter((x) => x !== id),
-    })),
-  clear: () => set({ selected: [] }),
-}))
+export const useStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      selected: [],
+      add: (id) =>
+        set((state) => ({
+          selected:
+            state.selected.length < 10 && !state.selected.includes(id)
+              ? [...state.selected, id]
+              : state.selected,
+        })),
+      remove: (id) =>
+        set((state) => ({
+          selected: state.selected.filter((x) => x !== id),
+        })),
+      clear: () => set({ selected: [] }),
+    }),
+    {
+      name: 'satellite-storage',
+      partialize: (state) => ({ selected: state.selected }),
+    }
+  )
+)
