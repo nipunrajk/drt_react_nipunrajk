@@ -59,19 +59,23 @@ const OrbitCodeFilter: React.FC<OrbitCodeFilterProps> = ({
           {selectedOrbitCodes.length > 0 && `(${selectedOrbitCodes.length})`}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className='w-56'>
-        {ORBIT_CODES.map((code) => (
-          <DropdownMenuCheckboxItem
-            key={code}
-            checked={selectedOrbitCodes.includes(code)}
-            onCheckedChange={() => toggleOrbitCode(code)}
-          >
-            <span className='flex-1'>{code}</span>
-            <span className='text-[#8892b0] ml-2'>
-              ({getOrbitCodeCount(code)})
-            </span>
-          </DropdownMenuCheckboxItem>
-        ))}
+      <DropdownMenuContent>
+        <div className='grid grid-cols-3 gap-1'>
+          {ORBIT_CODES.map((code) => (
+            <DropdownMenuCheckboxItem
+              key={code}
+              checked={selectedOrbitCodes.includes(code)}
+              onCheckedChange={() => toggleOrbitCode(code)}
+            >
+              <div className='flex items-center justify-between w-full'>
+                <span>{code}</span>
+                <span className='text-[#8892b0] ml-2'>
+                  ({getOrbitCodeCount(code)})
+                </span>
+              </div>
+            </DropdownMenuCheckboxItem>
+          ))}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )

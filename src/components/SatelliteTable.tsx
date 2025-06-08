@@ -16,9 +16,9 @@ import { useStore } from '../store/useStore'
 import FilterPanel from './FilterPanel'
 
 // Constants
-const ROW_HEIGHT = 48
-const HEADER_HEIGHT = 40
-const OVERSCAN_COUNT = 10
+const ROW_HEIGHT = 52
+const HEADER_HEIGHT = 48
+const OVERSCAN_COUNT = 5
 const MOBILE_BREAKPOINT = 768 // px
 
 // Helper function to clean orbit code for display
@@ -34,7 +34,7 @@ const useTableColumns = (isMobile: boolean) => {
     () => [
       {
         id: 'select',
-        header: () => <div className='w-12' />,
+        header: () => <div className='w-14' />,
         cell: ({ row }: { row: Row<Satellite> }) => {
           const id = row.original.noradCatId
           const checked = selected.includes(id)
@@ -45,7 +45,7 @@ const useTableColumns = (isMobile: boolean) => {
                 checked={checked}
                 onChange={() => (checked ? remove(id) : add(id))}
                 disabled={!checked && selected.length >= 10}
-                className='w-4 h-4 cursor-pointer accent-[#64ffda] bg-transparent border-[#233554]'
+                className='w-5 h-5 cursor-pointer accent-[#64ffda] bg-transparent border-[#233554] rounded-sm'
               />
             </div>
           )
@@ -60,14 +60,17 @@ const useTableColumns = (isMobile: boolean) => {
       {
         accessorKey: 'noradCatId',
         header: 'NORAD ID',
-        cell: (info: { getValue: () => any }) => info.getValue(),
+        cell: (info: { getValue: () => any }) => (
+          <span className='font-mono'>{info.getValue()}</span>
+        ),
         enableSorting: true,
       },
       {
         accessorKey: 'orbitCode',
         header: 'Orbit Code',
-        cell: (info: { getValue: () => any }) =>
-          cleanOrbitCode(info.getValue()),
+        cell: (info: { getValue: () => any }) => (
+          <span className='font-mono'>{cleanOrbitCode(info.getValue())}</span>
+        ),
         enableSorting: false,
       },
       {
@@ -103,12 +106,12 @@ const useTableColumns = (isMobile: boolean) => {
 
 // Table Header Component
 const TableHeader: React.FC<{ table: any }> = ({ table }) => (
-  <div className='flex bg-[#0a192f] text-white border-b border-[#233554]'>
+  <div className='flex bg-[#020c1b] text-white border-b border-[#233554]'>
     {table.getHeaderGroups()[0].headers.map((header: any) => (
       <div
         key={header.id}
-        className={`p-3 select-none ${
-          header.id === 'select' ? 'w-12' : 'flex-1'
+        className={`px-4 py-3 select-none ${
+          header.id === 'select' ? 'w-14' : 'flex-1'
         } ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
         onClick={
           header.column.getCanSort()
@@ -116,12 +119,12 @@ const TableHeader: React.FC<{ table: any }> = ({ table }) => (
             : undefined
         }
       >
-        <div className='flex items-center justify-between'>
-          <span className='whitespace-nowrap overflow-hidden text-ellipsis'>
+        <div className='flex items-center gap-2'>
+          <span className='whitespace-nowrap overflow-hidden text-ellipsis font-medium'>
             {flexRender(header.column.columnDef.header, header.getContext())}
           </span>
           {header.column.getCanSort() && (
-            <span className='ml-2 flex-shrink-0 text-[#64ffda]'>
+            <span className='text-[#64ffda] opacity-75'>
               {header.column.getIsSorted()
                 ? header.column.getIsSorted() === 'asc'
                   ? '↑'
@@ -142,12 +145,14 @@ const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
 }) => (
   <div
     style={style}
-    className='flex border-b border-[#233554] hover:bg-[#112240] text-white'
+    className='flex border-b border-[#233554]/50 hover:bg-[#112240] text-white/90'
   >
     {row.getVisibleCells().map((cell: any) => (
       <div
         key={cell.id}
-        className={`p-3 ${cell.column.id === 'select' ? 'w-12' : 'flex-1'}`}
+        className={`px-4 py-3 ${
+          cell.column.id === 'select' ? 'w-14' : 'flex-1'
+        }`}
       >
         {flexRender(cell.column.columnDef.cell, cell.getContext())}
       </div>
@@ -253,7 +258,7 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
 
   return (
     <div
-      className='bg-[#0a192f] rounded-lg overflow-hidden'
+      className='bg-[#020c1b] rounded-xl overflow-hidden border border-[#233554]/30'
       id='table-container'
     >
       <div className='w-full'>
