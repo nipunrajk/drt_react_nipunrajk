@@ -1,6 +1,8 @@
 import React from 'react'
 import { useStore } from '../store/useStore'
 import type { Satellite } from '../types'
+import { useNavigate } from 'react-router-dom'
+import { ChevronLeft } from 'lucide-react'
 
 const SelectedAssetsPage: React.FC<{ satellites: Satellite[] }> = ({
   satellites,
@@ -9,7 +11,7 @@ const SelectedAssetsPage: React.FC<{ satellites: Satellite[] }> = ({
   const selectedSatellites = satellites.filter((sat) =>
     selected.includes(sat.noradCatId)
   )
-
+  const navigate = useNavigate()
   return (
     <div className='min-h-screen bg-[#020c1b] text-white p-8'>
       <div className='max-w-4xl mx-auto'>
@@ -18,6 +20,16 @@ const SelectedAssetsPage: React.FC<{ satellites: Satellite[] }> = ({
           <span className='text-[#64ffda] text-xl'>
             {selectedSatellites.length} objects selected
           </span>
+        </div>
+
+        <div className='flex items-center justify-between mb-8'>
+          <button
+            className='text-[#64ffda] text-xl flex items-center '
+            onClick={() => navigate('/')}
+          >
+            <ChevronLeft className='w-6 h-6' />
+             Back
+          </button>
         </div>
 
         <div className='bg-[#0a192f] rounded-xl border border-[#233554]/30 overflow-hidden'>
