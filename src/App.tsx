@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import SatelliteTable from './components/SatelliteTable'
 import SelectedAssets from './components/SelectedAssets'
@@ -6,8 +7,9 @@ import { useSatellites } from './services'
 import { useStore } from './store/useStore'
 import CategoryFilter from './components/CategoryFilter'
 import OrbitCodeFilter from './components/OrbitCodeFilter'
+import SelectedAssetsPage from './pages/SelectedAssetsPage'
 
-function App() {
+function MainContent() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedOrbitCodes, setSelectedOrbitCodes] = useState<string[]>([])
@@ -86,6 +88,22 @@ function App() {
         <SelectedAssets satellites={allSats} />
       </div>
     </div>
+  )
+}
+
+function App() {
+  const { data: allSats = [] } = useSatellites()
+
+  return (
+    <Router>
+      <Routes>
+        <Route path='/' element={<MainContent />} />
+        <Route
+          path='/selected-assets'
+          element={<SelectedAssetsPage satellites={allSats} />}
+        />
+      </Routes>
+    </Router>
   )
 }
 
