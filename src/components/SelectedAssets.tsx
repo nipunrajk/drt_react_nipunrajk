@@ -20,8 +20,6 @@ const SelectedAssets: React.FC<SelectedAssetsProps> = ({ satellites }) => {
 
   const handleProceed = () => {
     startTransition(async () => {
-      // You could add any async operations here before navigation
-      // For example, saving the selection to an API
       navigate('/selected-assets')
     })
   }
@@ -30,7 +28,6 @@ const SelectedAssets: React.FC<SelectedAssetsProps> = ({ satellites }) => {
     <div className='h-full bg-[#020c1b] text-white p-6 flex flex-col'>
       <h1 className='text-[2rem] font-light mb-4'>Selected Assets</h1>
 
-      {/* Header with count and clear button */}
       <div className='flex items-center justify-between mb-4'>
         <span className='text-[#64ffda] text-lg'>
           {selected.length} objects selected
@@ -43,7 +40,6 @@ const SelectedAssets: React.FC<SelectedAssetsProps> = ({ satellites }) => {
         </button>
       </div>
 
-      {/* Selected items box */}
       <div className='flex-1 mb-4 relative'>
         <div className='absolute inset-0 rounded-lg border border-[#64ffda]/20 shadow-[0_0_20px_rgba(100,255,218,0.05)]' />
         <div className='h-full overflow-auto relative'>
@@ -73,7 +69,6 @@ const SelectedAssets: React.FC<SelectedAssetsProps> = ({ satellites }) => {
         </div>
       </div>
 
-      {/* Proceed button */}
       <button
         onClick={handleProceed}
         disabled={isPending || selected.length === 0}

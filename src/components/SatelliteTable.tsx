@@ -7,25 +7,19 @@ import {
   getSortedRowModel,
   type SortingState,
   type Row,
-  getFilteredRowModel,
 } from '@tanstack/react-table'
 import { FixedSizeList as List } from 'react-window'
 import type { Satellite } from '../types'
 import { useSatellites } from '../services'
 import { useStore } from '../store/useStore'
-import FilterPanel from './FilterPanel'
 import { Checkbox } from './ui/checkbox'
 
-// Constants
 const ROW_HEIGHT = 52
-const HEADER_HEIGHT = 48
 const OVERSCAN_COUNT = 5
-const MOBILE_BREAKPOINT = 768 // px
+const MOBILE_BREAKPOINT = 768
 
-// Helper function to clean orbit code for display
 const cleanOrbitCode = (code: string) => code?.replace(/[{}]/g, '') || code
 
-// Column Definitions
 const useTableColumns = (
   isMobile: boolean,
   setWarning: (show: boolean) => void
@@ -131,7 +125,6 @@ const useTableColumns = (
   )
 }
 
-// Table Header Component
 const TableHeader: React.FC<{ table: any }> = ({ table }) => (
   <div className='flex bg-[#020c1b] text-white border-b border-[#233554]'>
     {table.getHeaderGroups()[0].headers.map((header: any) => (
@@ -165,7 +158,6 @@ const TableHeader: React.FC<{ table: any }> = ({ table }) => (
   </div>
 )
 
-// Table Row Component
 const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
   row,
   style,
@@ -187,7 +179,6 @@ const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
   </div>
 )
 
-// Loading and Error States
 const LoadingState = () => (
   <div className='p-4 text-[#64ffda]'>Loading satellites…</div>
 )
@@ -198,7 +189,6 @@ const EmptyState = () => (
   <div className='p-4 text-[#64ffda]'>No results found.</div>
 )
 
-// Main Component
 interface SatelliteTableProps {
   searchQuery: string
   selectedCategories: string[]
@@ -207,9 +197,6 @@ interface SatelliteTableProps {
 }
 
 const SatelliteTable: React.FC<SatelliteTableProps> = ({
-  searchQuery,
-  selectedCategories,
-  selectedOrbitCodes,
   filteredSatellites,
 }) => {
   const [isMobile, setIsMobile] = useState(false)
@@ -217,7 +204,6 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
   const [showWarning, setShowWarning] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
 
-  // Handle resize
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
@@ -232,11 +218,7 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Data Fetching
   const { isLoading, isError } = useSatellites()
-  const selected = useStore((s) => s.selected)
-  const add = useStore((s) => s.add)
-  const remove = useStore((s) => s.remove)
 
   const columns = useTableColumns(isMobile, setShowWarning)
 
@@ -249,12 +231,10 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
     getSortedRowModel: getSortedRowModel(),
   })
 
-  // Render States
   if (isLoading) return <LoadingState />
   if (isError) return <ErrorState />
   if (filteredSatellites.length === 0) return <EmptyState />
 
-  // Get Rows
   const rows = table.getRowModel().rows
 
   return (

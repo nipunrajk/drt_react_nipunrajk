@@ -1,54 +1,92 @@
-# React + TypeScript + Vite
+# Assignment project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Features
 
-Currently, two official plugins are available:
+- View detailed satellite information including NORAD ID, orbit codes, and launch dates
+- Filter satellites by:
+  - Object types (Payloads, Debris, Rocket Bodies, Unknown)
+  - Orbit codes
+  - Search by name or NORAD ID
+- Sort data by various columns
+- Select up to 10 satellites for detailed viewing
+- Responsive design with mobile support
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Important Notes for Evaluators
 
-## Expanding the ESLint configuration
+- **Initial Load Time**: Due to the large dataset being fetched, please allow 10-15 seconds for the initial data to load. A loading indicator will be displayed during this time.
+- **Data Handling**: The application efficiently handles large datasets with:
+  - Client-side filtering and sorting
+  - Virtualized scrolling for optimal performance
+  - Responsive UI that remains interactive during data operations
+- **State Management**: Uses Zustand for efficient state management and persistence
+- **Error Handling**: Gracefully handles API errors and displays user-friendly messages
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Prerequisites
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+Before you begin, ensure you have installed:
+
+- [Node.js](https://nodejs.org/) (version 16 or higher)
+- npm or [yarn](https://yarnpkg.com/)
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone drt_react_nipunrajk
+cd drt_react_nipunrajk
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Install dependencies:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm install
+# or if you use yarn
+yarn
 ```
+
+## Running the Application
+
+1. Start the development server:
+
+```bash
+npm run dev
+# or with yarn
+yarn dev
+```
+
+2. Open your browser and visit:
+
+```
+http://localhost:5175
+```
+
+## Usage Guide
+
+1. **Filtering Data**:
+
+   - Use the category buttons to filter by object types (Payloads, Debris, etc.)
+   - Click multiple categories to view combinations
+   - Use the Orbit Code dropdown to filter by specific orbits
+   - Use the search bar to find satellites by name or NORAD ID
+
+2. **Sorting**:
+
+   - Click on column headers to sort data
+   - Click again to reverse sort order
+
+3. **Selecting Satellites**:
+   - Use checkboxes to select satellites
+   - Maximum 10 satellites can be selected at once
+   - View selected satellites in the side panel
+
+## Technologies Used
+
+- React 19
+- TypeScript
+- Vite
+- TanStack Table
+- Tailwind CSS
+- TanStack Query
+- Zustand (State Management)
+- Shadcn

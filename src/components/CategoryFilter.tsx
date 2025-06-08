@@ -12,7 +12,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   selectedCategories,
   onSelectCategories,
 }) => {
-  // Calculate counts for each category
   const counts = {
     all: data.length,
     PAYLOAD: data.filter((item) => item.objectType === 'PAYLOAD').length,
@@ -32,7 +31,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
   const toggleCategory = (categoryId: string) => {
     if (categoryId === 'all') {
-      // If clicking "All Objects", clear other selections
       onSelectCategories([])
       return
     }
