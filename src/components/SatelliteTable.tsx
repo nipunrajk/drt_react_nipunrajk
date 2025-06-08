@@ -7,25 +7,19 @@ import {
   getSortedRowModel,
   type SortingState,
   type Row,
-  getFilteredRowModel,
 } from '@tanstack/react-table'
 import { FixedSizeList as List } from 'react-window'
 import type { Satellite } from '../types'
 import { useSatellites } from '../services'
 import { useStore } from '../store/useStore'
-import FilterPanel from './FilterPanel'
 import { Checkbox } from './ui/checkbox'
 
-// Constants
 const ROW_HEIGHT = 52
-const HEADER_HEIGHT = 48
 const OVERSCAN_COUNT = 5
-const MOBILE_BREAKPOINT = 768 // px
+const MOBILE_BREAKPOINT = 768
 
-// Helper function to clean orbit code for display
 const cleanOrbitCode = (code: string) => code?.replace(/[{}]/g, '') || code
 
-// Column Definitions
 const useTableColumns = (
   isMobile: boolean,
   setWarning: (show: boolean) => void
@@ -131,7 +125,6 @@ const useTableColumns = (
   )
 }
 
-// Table Header Component
 const TableHeader: React.FC<{ table: any }> = ({ table }) => (
   <div className='flex bg-[#020c1b] text-white border-b border-[#233554]'>
     {table.getHeaderGroups()[0].headers.map((header: any) => (
@@ -165,7 +158,6 @@ const TableHeader: React.FC<{ table: any }> = ({ table }) => (
   </div>
 )
 
-// Table Row Component
 const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
   row,
   style,
@@ -187,7 +179,6 @@ const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
   </div>
 )
 
-// Loading and Error States
 const LoadingState = () => (
   <div className='p-4 text-[#64ffda]'>Loading satellites…</div>
 )
@@ -198,23 +189,21 @@ const EmptyState = () => (
   <div className='p-4 text-[#64ffda]'>No results found.</div>
 )
 
-// Main Component
 interface SatelliteTableProps {
   searchQuery: string
-  selectedCategory: string | null
+  selectedCategories: string[]
   selectedOrbitCodes: string[]
+  filteredSatellites: Satellite[]
 }
 
 const SatelliteTable: React.FC<SatelliteTableProps> = ({
-  searchQuery,
-  selectedCategory,
-  selectedOrbitCodes,
+  filteredSatellites,
 }) => {
   const [isMobile, setIsMobile] = useState(false)
   const [tableHeight, setTableHeight] = useState(600)
   const [showWarning, setShowWarning] = useState(false)
+  const [sorting, setSorting] = useState<SortingState>([])
 
-  // Handle resize
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
@@ -229,147 +218,23 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Data Fetching
-  const { data: allSats = [], isLoading, isError } = useSatellites()
-  const selected = useStore((s) => s.selected)
-  const add = useStore((s) => s.add)
-  const remove = useStore((s) => s.remove)
+  const { isLoading, isError } = useSatellites()
 
-  const columns = useMemo<ColumnDef<Satellite>[]>(
-    () => [
-      {
-        id: 'select',
-        header: () => <div className='w-14' />,
-        cell: ({ row }: { row: Row<Satellite> }) => {
-          const id = row.original.noradCatId
-          const checked = selected.includes(id)
-          const isMaxReached = selected.length >= 10
-
-          return (
-            <div className='flex items-center justify-center relative group'>
-              <Checkbox
-                checked={checked}
-                onCheckedChange={(isChecked) =>
-                  isChecked ? add(id) : remove(id)
-                }
-                disabled={!checked && isMaxReached}
-                className='data-[state=checked]:bg-[#64ffda] data-[state=checked]:border-[#64ffda] border-[#233554]'
-              />
-              {!checked && isMaxReached && (
-                <div className='absolute bottom-full mb-2 hidden group-hover:block'>
-                  <div className='bg-red-500 text-white text-xs rounded py-1 px-2 whitespace-nowrap'>
-                    Maximum of 10 selections allowed
-                  </div>
-                  <div className='border-l-4 border-l-transparent border-t-4 border-t-red-500 border-r-4 border-r-transparent w-0 h-0 mx-auto' />
-                </div>
-              )}
-            </div>
-          )
-        },
-      },
-      {
-        accessorKey: 'name',
-        header: 'Name',
-        cell: (info: { getValue: () => any }) => info.getValue(),
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'noradCatId',
-        header: 'NORAD ID',
-        cell: (info: { getValue: () => any }) => (
-          <span className='font-mono'>{info.getValue()}</span>
-        ),
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'orbitCode',
-        header: 'Orbit Code',
-        cell: (info: { getValue: () => any }) => (
-          <span className='font-mono'>{cleanOrbitCode(info.getValue())}</span>
-        ),
-        enableSorting: false,
-      },
-      {
-        accessorKey: 'objectType',
-        header: 'Object Type',
-        cell: (info: { getValue: () => any }) => info.getValue(),
-        enableSorting: false,
-      },
-      {
-        accessorKey: 'countryCode',
-        header: 'Country',
-        cell: (info: { getValue: () => any }) => info.getValue(),
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'launchDate',
-        header: 'Launch Date',
-        cell: (info) => {
-          const value = info.getValue() as string
-          const date = new Date(value)
-          return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-          })
-        },
-        enableSorting: true,
-      },
-    ],
-    [selected, add, remove]
-  )
-
-  // Filtered Data
-  const satellites = useMemo(() => {
-    let filtered = allSats
-
-    // Apply category filter
-    if (selectedCategory) {
-      filtered = filtered.filter((sat) => sat.objectType === selectedCategory)
-    }
-
-    // Apply search filter
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (sat) =>
-          sat.name.toLowerCase().includes(q) ||
-          String(sat.noradCatId).includes(q)
-      )
-    }
-
-    // Apply orbit code filters
-    if (selectedOrbitCodes.length > 0) {
-      filtered = filtered.filter((sat) =>
-        selectedOrbitCodes.some((code) => sat.orbitCode === `{${code}}`)
-      )
-    }
-
-    return filtered
-  }, [allSats, searchQuery, selectedCategory, selectedOrbitCodes])
-
-  // Table Setup
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const columns = useTableColumns(isMobile, setShowWarning)
 
   const table = useReactTable({
-    data: satellites,
+    data: filteredSatellites,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   })
 
-  // Get selected count from store
-  const isMaxSelected = selected.length >= 10
-
-  // Render States
   if (isLoading) return <LoadingState />
   if (isError) return <ErrorState />
-  if (satellites.length === 0) return <EmptyState />
+  if (filteredSatellites.length === 0) return <EmptyState />
 
-  // Get Rows
   const rows = table.getRowModel().rows
 
   return (

@@ -66,6 +66,7 @@ const OrbitCodeFilter: React.FC<OrbitCodeFilterProps> = ({
               key={code}
               checked={selectedOrbitCodes.includes(code)}
               onCheckedChange={() => toggleOrbitCode(code)}
+              onSelect={(e) => e.preventDefault()}
             >
               <div className='flex items-center justify-between w-full'>
                 <span>{code}</span>
