@@ -58,7 +58,7 @@ const useTableColumns = (
                 checked={checked}
                 onCheckedChange={handleChange}
                 disabled={!checked && isMaxReached}
-                className='data-[state=checked]:bg-[#64ffda] data-[state=checked]:border-[#64ffda] border-[#233554]'
+                className='data-[state=checked]:bg-primary data-[state=checked]:border-primary border-[#233554]'
               />
               {!checked && isMaxReached && (
                 <div className='absolute bottom-full mb-2 hidden group-hover:block'>
@@ -144,7 +144,7 @@ const TableHeader: React.FC<{ table: any }> = ({ table }) => (
             {flexRender(header.column.columnDef.header, header.getContext())}
           </span>
           {header.column.getCanSort() && (
-            <span className='text-[#64ffda] opacity-75'>
+            <span className='text-primary opacity-75'>
               {header.column.getIsSorted()
                 ? header.column.getIsSorted() === 'asc'
                   ? '↑'
@@ -180,13 +180,13 @@ const TableRow: React.FC<{ row: any; style: React.CSSProperties }> = ({
 )
 
 const LoadingState = () => (
-  <div className='p-4 text-[#64ffda]'>Loading satellites…</div>
+  <div className='p-4 text-primary'>Loading satellites…</div>
 )
 const ErrorState = () => (
   <div className='p-4 text-red-500'>Failed to load data.</div>
 )
 const EmptyState = () => (
-  <div className='p-4 text-[#64ffda]'>No results found.</div>
+  <div className='p-4 text-primary'>No results found.</div>
 )
 
 interface SatelliteTableProps {

@@ -104,7 +104,7 @@ function MainContent() {
                 />
                 <Label
                   htmlFor='select-all'
-                  className='text-sm font-medium leading-none text-[#64ffda] hover:text-white cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                  className='text-sm font-medium leading-none text-primary hover:text-white cursor-pointer  peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
                 >
                   {selected.length > 0 ? 'Clear All' : 'Select All'}
                 </Label>

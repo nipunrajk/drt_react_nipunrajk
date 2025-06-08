@@ -51,10 +51,10 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
           className={`px-4 py-2 rounded-full transition-colors ${
             id === 'all'
               ? selectedCategories.length === 0
-                ? 'bg-[#64ffda] text-[#0a192f] font-semibold'
+                ? 'bg-primary text-[#0a192f] font-semibold'
                 : 'bg-[#112240] text-white hover:bg-[#233554]'
               : selectedCategories.includes(id)
-              ? 'bg-[#64ffda] text-[#0a192f] font-semibold'
+              ? 'bg-primary text-[#0a192f] font-semibold'
               : 'bg-[#112240] text-white hover:bg-[#233554]'
           }`}
         >
