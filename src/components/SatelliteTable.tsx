@@ -14,6 +14,7 @@ import type { Satellite } from '../types'
 import { useSatellites } from '../services'
 import { useStore } from '../store/useStore'
 import FilterPanel from './FilterPanel'
+import { Checkbox } from './ui/checkbox'
 
 // Constants
 const ROW_HEIGHT = 52
@@ -25,7 +26,10 @@ const MOBILE_BREAKPOINT = 768 // px
 const cleanOrbitCode = (code: string) => code?.replace(/[{}]/g, '') || code
 
 // Column Definitions
-const useTableColumns = (isMobile: boolean) => {
+const useTableColumns = (
+  isMobile: boolean,
+  setWarning: (show: boolean) => void
+) => {
   const selected = useStore((s) => s.selected)
   const add = useStore((s) => s.add)
   const remove = useStore((s) => s.remove)
@@ -38,15 +42,38 @@ const useTableColumns = (isMobile: boolean) => {
         cell: ({ row }: { row: Row<Satellite> }) => {
           const id = row.original.noradCatId
           const checked = selected.includes(id)
+          const isMaxReached = selected.length >= 10
+
+          const handleChange = (isChecked: boolean) => {
+            if (isChecked && isMaxReached) {
+              setWarning(true)
+              setTimeout(() => setWarning(false), 3000)
+              return
+            }
+            if (isChecked) {
+              add(id)
+            } else {
+              remove(id)
+            }
+            setWarning(false)
+          }
+
           return (
-            <div className='flex items-center justify-center'>
-              <input
-                type='checkbox'
+            <div className='flex items-center justify-center relative group'>
+              <Checkbox
                 checked={checked}
-                onChange={() => (checked ? remove(id) : add(id))}
-                disabled={!checked && selected.length >= 10}
-                className='w-5 h-5 cursor-pointer accent-[#64ffda] bg-transparent border-[#233554] rounded-sm'
+                onCheckedChange={handleChange}
+                disabled={!checked && isMaxReached}
+                className='data-[state=checked]:bg-[#64ffda] data-[state=checked]:border-[#64ffda] border-[#233554]'
               />
+              {!checked && isMaxReached && (
+                <div className='absolute bottom-full mb-2 hidden group-hover:block'>
+                  <div className='bg-red-500 text-white text-xs rounded py-1 px-2 whitespace-nowrap'>
+                    Maximum of 10 selections allowed
+                  </div>
+                  <div className='border-l-4 border-l-transparent border-t-4 border-t-red-500 border-r-4 border-r-transparent w-0 h-0 mx-auto' />
+                </div>
+              )}
             </div>
           )
         },
@@ -100,7 +127,7 @@ const useTableColumns = (isMobile: boolean) => {
         enableSorting: true,
       },
     ],
-    [selected, add, remove]
+    [selected, add, remove, setWarning]
   )
 }
 
@@ -183,9 +210,9 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
   selectedCategory,
   selectedOrbitCodes,
 }) => {
-  // Responsive state
   const [isMobile, setIsMobile] = useState(false)
   const [tableHeight, setTableHeight] = useState(600)
+  const [showWarning, setShowWarning] = useState(false)
 
   // Handle resize
   useEffect(() => {
@@ -204,6 +231,93 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
 
   // Data Fetching
   const { data: allSats = [], isLoading, isError } = useSatellites()
+  const selected = useStore((s) => s.selected)
+  const add = useStore((s) => s.add)
+  const remove = useStore((s) => s.remove)
+
+  const columns = useMemo<ColumnDef<Satellite>[]>(
+    () => [
+      {
+        id: 'select',
+        header: () => <div className='w-14' />,
+        cell: ({ row }: { row: Row<Satellite> }) => {
+          const id = row.original.noradCatId
+          const checked = selected.includes(id)
+          const isMaxReached = selected.length >= 10
+
+          return (
+            <div className='flex items-center justify-center relative group'>
+              <Checkbox
+                checked={checked}
+                onCheckedChange={(isChecked) =>
+                  isChecked ? add(id) : remove(id)
+                }
+                disabled={!checked && isMaxReached}
+                className='data-[state=checked]:bg-[#64ffda] data-[state=checked]:border-[#64ffda] border-[#233554]'
+              />
+              {!checked && isMaxReached && (
+                <div className='absolute bottom-full mb-2 hidden group-hover:block'>
+                  <div className='bg-red-500 text-white text-xs rounded py-1 px-2 whitespace-nowrap'>
+                    Maximum of 10 selections allowed
+                  </div>
+                  <div className='border-l-4 border-l-transparent border-t-4 border-t-red-500 border-r-4 border-r-transparent w-0 h-0 mx-auto' />
+                </div>
+              )}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        cell: (info: { getValue: () => any }) => info.getValue(),
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'noradCatId',
+        header: 'NORAD ID',
+        cell: (info: { getValue: () => any }) => (
+          <span className='font-mono'>{info.getValue()}</span>
+        ),
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'orbitCode',
+        header: 'Orbit Code',
+        cell: (info: { getValue: () => any }) => (
+          <span className='font-mono'>{cleanOrbitCode(info.getValue())}</span>
+        ),
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'objectType',
+        header: 'Object Type',
+        cell: (info: { getValue: () => any }) => info.getValue(),
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'countryCode',
+        header: 'Country',
+        cell: (info: { getValue: () => any }) => info.getValue(),
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'launchDate',
+        header: 'Launch Date',
+        cell: (info) => {
+          const value = info.getValue() as string
+          const date = new Date(value)
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          })
+        },
+        enableSorting: true,
+      },
+    ],
+    [selected, add, remove]
+  )
 
   // Filtered Data
   const satellites = useMemo(() => {
@@ -235,7 +349,6 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
   }, [allSats, searchQuery, selectedCategory, selectedOrbitCodes])
 
   // Table Setup
-  const columns = useTableColumns(isMobile)
   const [sorting, setSorting] = React.useState<SortingState>([])
 
   const table = useReactTable({
@@ -248,6 +361,9 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
     getFilteredRowModel: getFilteredRowModel(),
   })
 
+  // Get selected count from store
+  const isMaxSelected = selected.length >= 10
+
   // Render States
   if (isLoading) return <LoadingState />
   if (isError) return <ErrorState />
@@ -257,22 +373,24 @@ const SatelliteTable: React.FC<SatelliteTableProps> = ({
   const rows = table.getRowModel().rows
 
   return (
-    <div
-      className='bg-[#020c1b] rounded-xl overflow-hidden border border-[#233554]/30'
-      id='table-container'
-    >
-      <div className='w-full'>
-        <TableHeader table={table} />
-        <List
-          height={tableHeight}
-          itemCount={rows.length}
-          itemSize={ROW_HEIGHT}
-          width='100%'
-          overscanCount={OVERSCAN_COUNT}
-          className='scrollbar-thin scrollbar-thumb-[#233554] scrollbar-track-transparent'
-        >
-          {({ index, style }) => <TableRow row={rows[index]} style={style} />}
-        </List>
+    <div className='space-y-2'>
+      <div
+        className='bg-[#020c1b] rounded-xl overflow-hidden border border-[#233554]/30'
+        id='table-container'
+      >
+        <div className='w-full'>
+          <TableHeader table={table} />
+          <List
+            height={tableHeight}
+            itemCount={rows.length}
+            itemSize={ROW_HEIGHT}
+            width='100%'
+            overscanCount={OVERSCAN_COUNT}
+            className='scrollbar-thin scrollbar-thumb-[#233554] scrollbar-track-transparent'
+          >
+            {({ index, style }) => <TableRow row={rows[index]} style={style} />}
+          </List>
+        </div>
       </div>
     </div>
   )
